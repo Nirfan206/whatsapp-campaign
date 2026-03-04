@@ -2,22 +2,130 @@
 <html>
 <head>
 <title>WhatsApp Campaign</title>
-<link rel="stylesheet" href="style.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f9;
+padding:40px;
+text-align:center;
+}
+
+.container{
+background:white;
+padding:30px;
+border-radius:10px;
+max-width:500px;
+margin:auto;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+button{
+background:#25D366;
+color:white;
+border:none;
+padding:12px 20px;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+margin-top:10px;
+}
+
+.progress{
+width:100%;
+background:#eee;
+border-radius:10px;
+margin-top:20px;
+}
+
+.bar{
+height:20px;
+background:#25D366;
+width:0%;
+border-radius:10px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h2>Upload Excel Student List</h2>
+<div class="container">
 
-<input type="file" id="fileInput" />
+<h2>WhatsApp Campaign Sender</h2>
 
-<button onclick="processFile()">Generate Links</button>
+<input type="file" id="file">
 
-<div id="results"></div>
+<br><br>
 
-<script src="script.js"></script>
+<button onclick="startCampaign()">Start Campaign</button>
+
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+
+<p id="status"></p>
+
+</div>
+
+<script>
+
+let students=[]
+let index=0
+
+function startCampaign(){
+
+const file=document.getElementById("file").files[0]
+
+const reader=new FileReader()
+
+reader.onload=function(e){
+
+const data=new Uint8Array(e.target.result)
+const workbook=XLSX.read(data,{type:'array'})
+
+const sheet=workbook.Sheets[workbook.SheetNames[0]]
+
+students=XLSX.utils.sheet_to_json(sheet)
+
+sendNext()
+
+}
+
+reader.readAsArrayBuffer(file)
+
+}
+
+function sendNext(){
+
+if(index>=students.length){
+document.getElementById("status").innerText="Campaign Completed"
+return
+}
+
+let name=students[index].Name
+let phone=students[index].Phone
+
+let message=`Hello ${name}, Admissions Open for Inter / POLYCET / EAMCET Coaching. Limited seats available.`
+
+let url=`https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+
+window.open(url,"_blank")
+
+index++
+
+let progress=(index/students.length)*100
+document.getElementById("bar").style.width=progress+"%"
+document.getElementById("status").innerText=`Sending ${index} / ${students.length}`
+
+setTimeout(sendNext,5000)
+
+}
+
+</script>
 
 </body>
 </html>
