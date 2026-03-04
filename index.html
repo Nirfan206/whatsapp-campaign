@@ -14,7 +14,7 @@ padding:30px;
 }
 
 .container{
-max-width:700px;
+max-width:800px;
 margin:auto;
 background:white;
 padding:25px;
@@ -60,6 +60,27 @@ width:0%;
 border-radius:10px;
 }
 
+.preview-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+gap:10px;
+margin-top:10px;
+}
+
+.image-card{
+border:1px solid #ddd;
+padding:5px;
+border-radius:6px;
+text-align:center;
+}
+
+.image-card img{
+width:100%;
+height:90px;
+object-fit:cover;
+border-radius:4px;
+}
+
 .sent-list{
 margin-top:20px;
 border-top:1px solid #ddd;
@@ -83,10 +104,15 @@ border-radius:5px;
 <h2>WhatsApp Campaign Sender</h2>
 
 <label>Upload Excel</label>
-<input type="file" id="file">
+<input type="file" id="excelFile">
 
 <label>Message</label>
 <textarea id="message" rows="4" placeholder="Hello {name}, admissions open..."></textarea>
+
+<label>Select Images</label>
+<input type="file" id="imageInput" multiple accept="image/*">
+
+<div class="preview-grid" id="preview"></div>
 
 <button onclick="startCampaign()">Start Campaign</button>
 
@@ -107,22 +133,53 @@ border-radius:5px;
 
 let students=[]
 let index=0
+let imageFiles=[]
 
-// DEFAULT BROCHURE IMAGE
-let brochure="https://creative-lavender-jqskxv8vyl.edgeone.app/IMG-20260304-WA0007.jpg"
+document.getElementById("imageInput").addEventListener("change",function(){
+
+let preview=document.getElementById("preview")
+preview.innerHTML=""
+
+imageFiles=[...this.files]
+
+imageFiles.forEach((file,i)=>{
+
+let reader=new FileReader()
+
+reader.onload=function(e){
+
+let card=document.createElement("div")
+card.className="image-card"
+
+card.innerHTML=`
+<img src="${e.target.result}">
+<br>
+<label>
+<input type="checkbox" checked data-index="${i}">
+Send
+</label>
+`
+
+preview.appendChild(card)
+
+}
+
+reader.readAsDataURL(file)
+
+})
+
+})
 
 function startCampaign(){
 
-const file=document.getElementById("file").files[0]
+const file=document.getElementById("excelFile").files[0]
 
 const reader=new FileReader()
 
 reader.onload=function(e){
 
 const data=new Uint8Array(e.target.result)
-
 const workbook=XLSX.read(data,{type:'array'})
-
 const sheet=workbook.Sheets[workbook.SheetNames[0]]
 
 students=XLSX.utils.sheet_to_json(sheet)
@@ -142,7 +199,6 @@ if(index>=students.length){
 document.getElementById("status").innerText="Campaign Completed"
 
 return
-
 }
 
 let name=students[index].Name
@@ -152,8 +208,24 @@ let template=document.getElementById("message").value
 
 let message=template.replace("{name}",name)
 
-// ADD IMAGE AUTOMATICALLY
-message=message+"\n\nBrochure:\n"+brochure
+let selectedImages=[]
+
+document.querySelectorAll("#preview input[type=checkbox]").forEach(cb=>{
+if(cb.checked){
+let img=document.querySelectorAll("#preview img")[cb.dataset.index]
+selectedImages.push(img.src)
+}
+})
+
+if(selectedImages.length>0){
+
+message+="\n\nBrochure 👇\n"
+
+selectedImages.forEach(img=>{
+message+="\n"+img
+})
+
+}
 
 let url=`https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
@@ -168,9 +240,7 @@ document.getElementById("bar").style.width=progress+"%"
 document.getElementById("status").innerText=`Sending ${index} / ${students.length}`
 
 let sentItem=document.createElement("div")
-
 sentItem.className="sent-item"
-
 sentItem.innerText=name+" - "+phone
 
 document.getElementById("sentContainer").appendChild(sentItem)
