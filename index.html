@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>WhatsApp Campaign Sender</title>
+<title>WhatsApp Campaign Tool</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -9,27 +9,21 @@
 
 body{
 font-family:Arial;
-background:#f2f4f7;
-padding:40px;
-text-align:center;
+background:#f4f6f9;
+padding:30px;
 }
 
 .container{
-background:white;
-padding:30px;
-border-radius:10px;
-max-width:600px;
+max-width:700px;
 margin:auto;
+background:white;
+padding:25px;
+border-radius:10px;
 box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
-.instructions{
-background:#f0f7ff;
-border-left:4px solid #25D366;
-padding:15px;
-text-align:left;
-margin-bottom:20px;
-font-size:14px;
+h2{
+text-align:center;
 }
 
 input,textarea{
@@ -44,11 +38,12 @@ button{
 background:#25D366;
 color:white;
 border:none;
-padding:12px 20px;
+padding:12px;
+width:100%;
+margin-top:10px;
 border-radius:6px;
 font-size:16px;
 cursor:pointer;
-margin-top:10px;
 }
 
 .progress{
@@ -65,6 +60,19 @@ width:0%;
 border-radius:10px;
 }
 
+.sent-list{
+margin-top:20px;
+border-top:1px solid #ddd;
+padding-top:10px;
+}
+
+.sent-item{
+background:#f7f7f7;
+padding:8px;
+margin-top:5px;
+border-radius:5px;
+}
+
 </style>
 </head>
 
@@ -74,29 +82,11 @@ border-radius:10px;
 
 <h2>WhatsApp Campaign Sender</h2>
 
-<div class="instructions">
-
-<b>Instructions:</b><br><br>
-
-1. Upload Excel file with columns:<br>
-<b>Name | Phone</b><br><br>
-
-Example:<br>
-Ramesh Kumar | 919876543210<br>
-Suresh Reddy | 919812345678<br><br>
-
-2. Write your campaign message below.<br>
-
-Use <b>{name}</b> to automatically insert student name.<br><br>
-
-Example message:<br>
-Hello {name}, Admissions open for Inter / POLYCET / EAMCET coaching.
-
-</div>
-
+<label>Upload Excel</label>
 <input type="file" id="file">
 
-<textarea id="message" rows="4" placeholder="Type your message here. Example: Hello {name}, Admissions open..."></textarea>
+<label>Message</label>
+<textarea id="message" rows="4" placeholder="Hello {name}, admissions open..."></textarea>
 
 <button onclick="startCampaign()">Start Campaign</button>
 
@@ -106,6 +96,11 @@ Hello {name}, Admissions open for Inter / POLYCET / EAMCET coaching.
 
 <p id="status"></p>
 
+<div class="sent-list">
+<h3>Messages Sent</h3>
+<div id="sentContainer"></div>
+</div>
+
 </div>
 
 <script>
@@ -113,20 +108,19 @@ Hello {name}, Admissions open for Inter / POLYCET / EAMCET coaching.
 let students=[]
 let index=0
 
+// DEFAULT BROCHURE IMAGE
+let brochure="https://creative-lavender-jqskxv8vyl.edgeone.app/IMG-20260304-WA0007.jpg"
+
 function startCampaign(){
 
 const file=document.getElementById("file").files[0]
-
-if(!file){
-alert("Please upload Excel file")
-return
-}
 
 const reader=new FileReader()
 
 reader.onload=function(e){
 
 const data=new Uint8Array(e.target.result)
+
 const workbook=XLSX.read(data,{type:'array'})
 
 const sheet=workbook.Sheets[workbook.SheetNames[0]]
@@ -144,8 +138,11 @@ reader.readAsArrayBuffer(file)
 function sendNext(){
 
 if(index>=students.length){
+
 document.getElementById("status").innerText="Campaign Completed"
+
 return
+
 }
 
 let name=students[index].Name
@@ -155,6 +152,9 @@ let template=document.getElementById("message").value
 
 let message=template.replace("{name}",name)
 
+// ADD IMAGE AUTOMATICALLY
+message=message+"\n\nBrochure:\n"+brochure
+
 let url=`https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
 window.open(url,"_blank")
@@ -162,11 +162,20 @@ window.open(url,"_blank")
 index++
 
 let progress=(index/students.length)*100
+
 document.getElementById("bar").style.width=progress+"%"
 
 document.getElementById("status").innerText=`Sending ${index} / ${students.length}`
 
-setTimeout(sendNext,4000)
+let sentItem=document.createElement("div")
+
+sentItem.className="sent-item"
+
+sentItem.innerText=name+" - "+phone
+
+document.getElementById("sentContainer").appendChild(sentItem)
+
+setTimeout(sendNext,5000)
 
 }
 
