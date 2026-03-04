@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>WhatsApp Campaign</title>
+<title>WhatsApp Campaign Sender</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -9,7 +9,7 @@
 
 body{
 font-family:Arial;
-background:#f4f6f9;
+background:#f2f4f7;
 padding:40px;
 text-align:center;
 }
@@ -20,7 +20,7 @@ padding:30px;
 border-radius:10px;
 max-width:500px;
 margin:auto;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
 button{
@@ -31,7 +31,6 @@ padding:12px 20px;
 border-radius:6px;
 font-size:16px;
 cursor:pointer;
-margin-top:10px;
 }
 
 .progress{
@@ -119,9 +118,10 @@ index++
 
 let progress=(index/students.length)*100
 document.getElementById("bar").style.width=progress+"%"
+
 document.getElementById("status").innerText=`Sending ${index} / ${students.length}`
 
-setTimeout(sendNext,5000)
+setTimeout(sendNext,4000)
 
 }
 
