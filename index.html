@@ -109,8 +109,9 @@ border-radius:5px;
 <label>Message</label>
 <textarea id="message" rows="4" placeholder="Hello {name}, admissions open..."></textarea>
 
-<label>Select Images</label>
-<input type="file" id="imageInput" multiple accept="image/*">
+<label>Add Image URL</label>
+<input type="text" id="imageUrl" placeholder="Paste image link (.jpg/.png)">
+<button onclick="addImage()">Add Image</button>
 
 <div class="preview-grid" id="preview"></div>
 
@@ -133,42 +134,35 @@ border-radius:5px;
 
 let students=[]
 let index=0
-let imageFiles=[]
+let images=[]
 
-document.getElementById("imageInput").addEventListener("change",function(){
+function addImage(){
+
+let url=document.getElementById("imageUrl").value
+
+if(!url) return
+
+images.push(url)
 
 let preview=document.getElementById("preview")
-preview.innerHTML=""
-
-imageFiles=[...this.files]
-
-imageFiles.forEach((file,i)=>{
-
-let reader=new FileReader()
-
-reader.onload=function(e){
 
 let card=document.createElement("div")
 card.className="image-card"
 
 card.innerHTML=`
-<img src="${e.target.result}">
+<img src="${url}">
 <br>
 <label>
-<input type="checkbox" checked data-index="${i}">
+<input type="checkbox" checked data-url="${url}">
 Send
 </label>
 `
 
 preview.appendChild(card)
 
+document.getElementById("imageUrl").value=""
+
 }
-
-reader.readAsDataURL(file)
-
-})
-
-})
 
 function startCampaign(){
 
@@ -197,8 +191,8 @@ function sendNext(){
 if(index>=students.length){
 
 document.getElementById("status").innerText="Campaign Completed"
-
 return
+
 }
 
 let name=students[index].Name
@@ -212,14 +206,13 @@ let selectedImages=[]
 
 document.querySelectorAll("#preview input[type=checkbox]").forEach(cb=>{
 if(cb.checked){
-let img=document.querySelectorAll("#preview img")[cb.dataset.index]
-selectedImages.push(img.src)
+selectedImages.push(cb.dataset.url)
 }
 })
 
 if(selectedImages.length>0){
 
-message+="\n\nBrochure 👇\n"
+message+="\n\nBrochure 👇"
 
 selectedImages.forEach(img=>{
 message+="\n"+img
